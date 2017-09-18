@@ -16,6 +16,7 @@ namespace Tetris
         #endregion
 
         #region GameParameterSettings
+        public static System.Windows.Forms.Timer speedTimer;
         public static GameItem newGame;
         public static Random rnd = new Random();
         public enum SHAPE { SQUARE = 0, LONG = 1, WIDGET = 2, LEFTHOOK = 3, RIGHTHOOK = 4, LEFTSNAKE = 5, RIGHTSNAKE = 6 }

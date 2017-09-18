@@ -23,13 +23,9 @@ namespace Tetris
             Court.graphic = Graphics.FromImage(Court.bitmap);
 
             Court.newGame = new GameItem();
-        }
 
-        //private void Form1_Resize_1(object sender, EventArgs e)
-        //{
-        //    Court.bitmap = new Bitmap(Court.picMain.Width, Court.picMain.Height);
-        //    Court.graphic = Graphics.FromImage(Court.bitmap);
-        //}
+            Court.speedTimer = timer2;
+        }
 
         private void timer1_Tick(object sender, EventArgs e)
         {
@@ -37,14 +33,14 @@ namespace Tetris
             PaintFunc.paint();
         }
 
-        private void Form1_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
-        {
-            UpdateFunc.OnKeyDown(e.KeyCode);
-        }
-
         private void timer2_Tick(object sender, EventArgs e)
         {
             UpdateFunc.updateBlockDown();
+        }
+
+        private void Form1_PreviewKeyDown_1(object sender, PreviewKeyDownEventArgs e)
+        {
+            UpdateFunc.OnKeyDown(e.KeyCode);
         }
     }
 }

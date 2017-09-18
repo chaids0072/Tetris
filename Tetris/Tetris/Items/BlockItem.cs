@@ -25,8 +25,7 @@ namespace Tetris
 
         public BlockItem()
         {
-            //this.blockShape = (Court.SHAPE)(Court.rnd.Next(Enum.GetValues(typeof(Court.SHAPE)).Length));
-            this.blockShape = (Court.SHAPE)(1);
+            this.blockShape = (Court.SHAPE)(Court.rnd.Next(Enum.GetValues(typeof(Court.SHAPE)).Length));
             this.blockColor = (int)this.blockShape;
         }
     }
