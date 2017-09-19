@@ -11,8 +11,11 @@ namespace Tetris
     {
         #region GamePicutreSettings
         public static PictureBox picMain;
+        public static PictureBox picSecondary;
         public static Bitmap bitmap;
+        public static Bitmap bitmapSecondary;
         public static Graphics graphic;
+        public static Graphics graphicSecondary;
         #endregion
 
         #region GameParameterSettings
@@ -21,6 +24,7 @@ namespace Tetris
         public static Random rnd = new Random();
         public enum SHAPE { SQUARE = 0, LONG = 1, WIDGET = 2, LEFTHOOK = 3, RIGHTHOOK = 4, LEFTSNAKE = 5, RIGHTSNAKE = 6 }
         LinkedList<BlockItem> blocks = new LinkedList<BlockItem>();
+        public static int[,] counter = new int[GameItem.heightInSquares, GameItem.widthInSquares];
         #endregion
 
         #region PictureParameterSettings

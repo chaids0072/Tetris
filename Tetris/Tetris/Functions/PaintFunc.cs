@@ -11,18 +11,27 @@ namespace Tetris.Functions
         public static void paint()
         {
             Court.graphic.Clear(Color.White);
-            paintGrid();
+            Court.graphicSecondary.Clear(Color.FloralWhite);
+            //paintGrid();
             paintBlocks();
             Court.picMain.Image = Court.bitmap;
+            Court.picSecondary.Image = Court.bitmapSecondary;
         }
 
         private static void paintBlocks()
         {
             //paint current block
-            for (int j = 0; j < Court.newGame.currentBlocks.locations.Count; j++)
+            for (int i = 0; i < Court.newGame.currentBlocks.locations.Count; i++)
             {
-                Point tempPoint = Court.newGame.currentBlocks.locations[j];
+                Point tempPoint = Court.newGame.currentBlocks.locations[i];
                 Court.graphic.DrawImage(Court.blockImage, new Rectangle(Court.imagePixel * tempPoint.X, Court.imagePixel * tempPoint.Y, 32, 32), new Rectangle(Court.imagePixel * Court.newGame.currentBlocks.blockColor, 0, 32, 32), GraphicsUnit.Pixel);
+            }
+
+            //paint next block
+            for (int j = 0; j < Court.newGame.nextBlock.locations.Count; j++)
+            {
+                Point tempPoint = Court.newGame.nextBlock.locations[j];
+                Court.graphicSecondary.DrawImage(Court.blockImage, new Rectangle(Court.imagePixel * tempPoint.X, Court.imagePixel * tempPoint.Y, 32, 32), new Rectangle(Court.imagePixel * Court.newGame.nextBlock.blockColor, 0, 32, 32), GraphicsUnit.Pixel);
             }
 
             //Paint stable blocks

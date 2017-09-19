@@ -17,14 +17,15 @@ namespace Tetris
             InitializeComponent();
 
             Court.picMain = this.pictureBox1;
-
+            Court.picSecondary = this.pictureBox2;
             Court.bitmap = new Bitmap(Court.picMain.Width, Court.picMain.Height);
-
+            Court.bitmapSecondary = new Bitmap(Court.picSecondary.Width, Court.picSecondary.Height);
             Court.graphic = Graphics.FromImage(Court.bitmap);
-
+            Court.graphicSecondary = Graphics.FromImage(Court.bitmapSecondary);
             Court.newGame = new GameItem();
-
             Court.speedTimer = timer2;
+
+            
         }
 
         private void timer1_Tick(object sender, EventArgs e)
@@ -42,5 +43,6 @@ namespace Tetris
         {
             UpdateFunc.OnKeyDown(e.KeyCode);
         }
+
     }
 }

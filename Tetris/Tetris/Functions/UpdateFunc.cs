@@ -9,7 +9,7 @@ namespace Tetris.Functions
 {
     class UpdateFunc
     {
-        public static Boolean checkBlocks(BlockItem replaceBlock)
+        private static Boolean checkBlocks(BlockItem replaceBlock)
         {
             Boolean canMove = true;
 
@@ -40,6 +40,59 @@ namespace Tetris.Functions
             }
 
             return canMove;
+        }
+
+        public static void updateScore()
+        {
+            List<int> lines = new List<int>(4);
+
+            for (int i = 0; i < GameItem.heightInSquares; i++)
+            {
+                for (int j = 0; j < GameItem.widthInSquares; j++)
+                {
+                    Court.counter[i, j] = 0;
+                }
+            }
+
+            for (int i = 0; i < Court.newGame.blocks.Count; i++)
+            {
+                for (int j = 0; j < Court.newGame.blocks[i].locations.Count; j++)
+                {
+                    Point tempPoint = Court.newGame.blocks[i].locations[j];
+                    Court.counter[tempPoint.Y, tempPoint.X] = 1024;
+                }
+            }
+
+            for (int x = GameItem.heightInSquares - 1; x >= 0; x--)
+            {
+                int counter = 0;
+                for (int z = GameItem.widthInSquares - 1; z >= 0 ; z--)
+                {
+                    if (Court.counter[x,z] == 1024) {
+                        counter++;
+                    }
+                }
+
+                if (counter == 10) {
+                    lines.Add(x);
+                    Court.newGame.socre += 10;
+                }
+                counter = 0;
+            }
+
+            for (int i = 0; i < Court.newGame.blocks.Count; i++)
+            {
+                for (int j = 0; j < Court.newGame.blocks[i].locations.Count; j++)
+                {
+                    Point tempPoint = Court.newGame.blocks[i].locations[j];
+                    if (lines.Contains(tempPoint.Y)) {
+                        Court.newGame.blocks[i].locations[j].X = -1;
+                        Court.newGame.blocks[i].locations[j].Y = -1;
+                    }
+                }
+            }
+
+            Console.WriteLine(Court.newGame.socre);
         }
 
         public static void updateBlockIndex(Keys argKey)
@@ -99,7 +152,11 @@ namespace Tetris.Functions
             else
             {
                 Court.newGame.blocks.Add(Court.newGame.currentBlocks);
-                Court.newGame.currentBlocks = new BlockItem();
+                updateScore();
+                Court.newGame.currentBlocks = Court.newGame.nextBlock;
+                Court.newGame.nextBlock.locations.Clear();
+                Court.newGame.nextBlock = new BlockItem();
+                Court.newGame.nextFallingBlock = true;
                 Court.newGame.currentFallingBlock = false;
             }
         }
@@ -109,60 +166,76 @@ namespace Tetris.Functions
         {
             if (!Court.newGame.currentFallingBlock)
             {
-                switch (Court.newGame.currentBlocks.blockShape)
+                initialBlocks(Court.newGame.currentBlocks);
+
+                if (!checkBlocks(Court.newGame.currentBlocks))
                 {
-                    case Court.SHAPE.SQUARE:
-                        Court.newGame.currentBlocks.locations.Add(new Point(4, 0));
-                        Court.newGame.currentBlocks.locations.Add(new Point(5, 0));
-                        Court.newGame.currentBlocks.locations.Add(new Point(4, 1));
-                        Court.newGame.currentBlocks.locations.Add(new Point(5, 1));
-                        break;
-                    case Court.SHAPE.LONG:
-                        Court.newGame.currentBlocks.locations.Add(new Point(3, 0));
-                        Court.newGame.currentBlocks.locations.Add(new Point(4, 0));
-                        Court.newGame.currentBlocks.locations.Add(new Point(5, 0));
-                        Court.newGame.currentBlocks.locations.Add(new Point(6, 0));
-                        break;
-                    case Court.SHAPE.WIDGET:
-                        Court.newGame.currentBlocks.locations.Add(new Point(5, 0));
-                        Court.newGame.currentBlocks.locations.Add(new Point(4, 1));
-                        Court.newGame.currentBlocks.locations.Add(new Point(5, 1));
-                        Court.newGame.currentBlocks.locations.Add(new Point(6, 1));
-                        break;
-                    case Court.SHAPE.LEFTHOOK:
-                        Court.newGame.currentBlocks.locations.Add(new Point(7, 0));
-                        Court.newGame.currentBlocks.locations.Add(new Point(5, 1));
-                        Court.newGame.currentBlocks.locations.Add(new Point(6, 1));
-                        Court.newGame.currentBlocks.locations.Add(new Point(7, 1));
-                        break;
-                    case Court.SHAPE.RIGHTHOOK:
-                        Court.newGame.currentBlocks.locations.Add(new Point(5, 0));
-                        Court.newGame.currentBlocks.locations.Add(new Point(5, 1));
-                        Court.newGame.currentBlocks.locations.Add(new Point(6, 1));
-                        Court.newGame.currentBlocks.locations.Add(new Point(7, 1));
-                        break;
-                    case Court.SHAPE.LEFTSNAKE:
-                        Court.newGame.currentBlocks.locations.Add(new Point(6, 0));
-                        Court.newGame.currentBlocks.locations.Add(new Point(7, 0));
-                        Court.newGame.currentBlocks.locations.Add(new Point(5, 1));
-                        Court.newGame.currentBlocks.locations.Add(new Point(6, 1));
-                        break;
-                    case Court.SHAPE.RIGHTSNAKE:
-                        Court.newGame.currentBlocks.locations.Add(new Point(5, 0));
-                        Court.newGame.currentBlocks.locations.Add(new Point(6, 0));
-                        Court.newGame.currentBlocks.locations.Add(new Point(6, 1));
-                        Court.newGame.currentBlocks.locations.Add(new Point(7, 1));
-                        break;
-                    default:
-                        break;
-                }
-                if (!checkBlocks(Court.newGame.currentBlocks)) {
                     Court.newGame = new GameItem();
-                } else {
+                }
+                else
+                {
                     Court.newGame.currentFallingBlock = true;
                 }
             }
+
+            if (Court.newGame.currentFallingBlock)
+            {
+                initialBlocks(Court.newGame.nextBlock);
+                Court.newGame.nextFallingBlock = false;
+            }
         }
+
+        private static void initialBlocks(BlockItem tempblock)
+        {
+            switch (tempblock.blockShape)
+            {
+                case Court.SHAPE.SQUARE:
+                    tempblock.locations.Add(new Point(4, 0));
+                    tempblock.locations.Add(new Point(5, 0));
+                    tempblock.locations.Add(new Point(4, 1));
+                    tempblock.locations.Add(new Point(5, 1));
+                    break;
+                case Court.SHAPE.LONG:
+                    tempblock.locations.Add(new Point(3, 0));
+                    tempblock.locations.Add(new Point(4, 0));
+                    tempblock.locations.Add(new Point(5, 0));
+                    tempblock.locations.Add(new Point(6, 0));
+                    break;
+                case Court.SHAPE.WIDGET:
+                    tempblock.locations.Add(new Point(5, 0));
+                    tempblock.locations.Add(new Point(4, 1));
+                    tempblock.locations.Add(new Point(5, 1));
+                    tempblock.locations.Add(new Point(6, 1));
+                    break;
+                case Court.SHAPE.LEFTHOOK:
+                    tempblock.locations.Add(new Point(7, 0));
+                    tempblock.locations.Add(new Point(5, 1));
+                    tempblock.locations.Add(new Point(6, 1));
+                    tempblock.locations.Add(new Point(7, 1));
+                    break;
+                case Court.SHAPE.RIGHTHOOK:
+                    tempblock.locations.Add(new Point(5, 0));
+                    tempblock.locations.Add(new Point(5, 1));
+                    tempblock.locations.Add(new Point(6, 1));
+                    tempblock.locations.Add(new Point(7, 1));
+                    break;
+                case Court.SHAPE.LEFTSNAKE:
+                    tempblock.locations.Add(new Point(6, 0));
+                    tempblock.locations.Add(new Point(7, 0));
+                    tempblock.locations.Add(new Point(5, 1));
+                    tempblock.locations.Add(new Point(6, 1));
+                    break;
+                case Court.SHAPE.RIGHTSNAKE:
+                    tempblock.locations.Add(new Point(5, 0));
+                    tempblock.locations.Add(new Point(6, 0));
+                    tempblock.locations.Add(new Point(6, 1));
+                    tempblock.locations.Add(new Point(7, 1));
+                    break;
+                default:
+                    break;
+            }
+        }
+
 
         public static void OnKeyDown(Keys argKey)
         {
@@ -187,7 +260,7 @@ namespace Tetris.Functions
             Court.speedTimer.Interval = 500; ;
         }
 
-        public static void changeBlockDirection()
+        private static void changeBlockDirection()
         {
 
             BlockItem replaceBlock = new BlockItem();
