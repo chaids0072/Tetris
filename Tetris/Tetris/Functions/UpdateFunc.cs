@@ -9,7 +9,7 @@ namespace Tetris.Functions
 {
     class UpdateFunc
     {
-        public static Boolean checkBlocks(BlockItem replaceBlock)
+        private static Boolean checkBlocks(BlockItem replaceBlock)
         {
             Boolean canMove = true;
 
@@ -17,7 +17,7 @@ namespace Tetris.Functions
             {
                 Point tempReplacePoint = replaceBlock.locations[k];
                 if (tempReplacePoint.X < 0 || tempReplacePoint.X >= 10
-                    || tempReplacePoint.Y >= 20)
+                    || tempReplacePoint.Y >= 20 || tempReplacePoint.Y < 0)
                 {
                     return canMove = false;
                 }
@@ -42,45 +42,93 @@ namespace Tetris.Functions
             return canMove;
         }
 
-        public static void updateBlockLeft()
+        public static void updateScore()
+        {
+            List<int> lines = new List<int>(4);
+
+            for (int i = 0; i < GameItem.heightInSquares; i++)
+            {
+                for (int j = 0; j < GameItem.widthInSquares; j++)
+                {
+                    Court.counter[i, j] = 0;
+                }
+            }
+
+            for (int i = 0; i < Court.newGame.blocks.Count; i++)
+            {
+                for (int j = 0; j < Court.newGame.blocks[i].locations.Count; j++)
+                {
+                    Point tempPoint = Court.newGame.blocks[i].locations[j];
+                    Court.counter[tempPoint.Y, tempPoint.X] = 1024;
+                }
+            }
+
+            for (int x = GameItem.heightInSquares - 1; x >= 0; x--)
+            {
+                int counter = 0;
+                for (int z = GameItem.widthInSquares - 1; z >= 0 ; z--)
+                {
+                    if (Court.counter[x,z] == 1024) {
+                        counter++;
+                    }
+                }
+
+                if (counter == 10) {
+                    lines.Add(x);
+                    Court.newGame.socre += 10;
+                }
+                counter = 0;
+            }
+
+            for (int i = 0; i < Court.newGame.blocks.Count; i++)
+            {
+                for (int j = 0; j < Court.newGame.blocks[i].locations.Count; j++)
+                {
+                    Point tempPoint = Court.newGame.blocks[i].locations[j];
+                    if (lines.Contains(tempPoint.Y)) {
+                        Court.newGame.blocks[i].locations[j].X = -1;
+                        Court.newGame.blocks[i].locations[j].Y = -1;
+                    }
+                }
+            }
+
+            Console.WriteLine(Court.newGame.socre);
+        }
+
+        public static void updateBlockIndex(Keys argKey)
         {
             BlockItem replaceBlock = new BlockItem();
 
             for (int j = 0; j < Court.newGame.currentBlocks.locations.Count; j++)
             {
                 Point tempPoint = Court.newGame.currentBlocks.locations[j];
-                tempPoint.X -= 1;
+                switch (argKey)
+                {
+                    case Keys.Left:
+                        tempPoint.X -= 1;
+                        break;
+                    case Keys.Right:
+                        tempPoint.X += 1;
+                        break;
+                    case Keys.Up:
+                        break;
+                    case Keys.Down:
+                        break;
+                    default:
+                        break;
+                }
                 replaceBlock.locations.Add(tempPoint);
             }
 
             replaceBlock.blockColor = Court.newGame.currentBlocks.blockColor;
             replaceBlock.myRotation = Court.newGame.currentBlocks.myRotation;
+            replaceBlock.blockShape = Court.newGame.currentBlocks.blockShape;
 
             if (checkBlocks(replaceBlock))
             {
                 Court.newGame.currentBlocks = replaceBlock;
             }
         }
-
-        public static void updateBlockRight()
-        {
-            BlockItem replaceBlock = new BlockItem();
-
-            for (int j = 0; j < Court.newGame.currentBlocks.locations.Count; j++)
-            {
-                Point tempPoint = Court.newGame.currentBlocks.locations[j];
-                tempPoint.X += 1;
-                replaceBlock.locations.Add(tempPoint);
-            }
-            replaceBlock.blockColor = Court.newGame.currentBlocks.blockColor;
-            replaceBlock.myRotation = Court.newGame.currentBlocks.myRotation;
-
-            if (checkBlocks(replaceBlock))
-            {
-                Court.newGame.currentBlocks = replaceBlock;
-            }
-        }
-
 
         public static void updateBlockDown()
         {
@@ -95,6 +143,7 @@ namespace Tetris.Functions
 
             replaceBlock.blockColor = Court.newGame.currentBlocks.blockColor;
             replaceBlock.myRotation = Court.newGame.currentBlocks.myRotation;
+            replaceBlock.blockShape = Court.newGame.currentBlocks.blockShape;
 
             if (checkBlocks(replaceBlock))
             {
@@ -103,7 +152,11 @@ namespace Tetris.Functions
             else
             {
                 Court.newGame.blocks.Add(Court.newGame.currentBlocks);
-                Court.newGame.currentBlocks = new BlockItem();
+                updateScore();
+                Court.newGame.currentBlocks = Court.newGame.nextBlock;
+                Court.newGame.nextBlock.locations.Clear();
+                Court.newGame.nextBlock = new BlockItem();
+                Court.newGame.nextFallingBlock = true;
                 Court.newGame.currentFallingBlock = false;
             }
         }
@@ -113,80 +166,113 @@ namespace Tetris.Functions
         {
             if (!Court.newGame.currentFallingBlock)
             {
-                switch (Court.newGame.currentBlocks.blockShape)
+                initialBlocks(Court.newGame.currentBlocks);
+
+                if (!checkBlocks(Court.newGame.currentBlocks))
                 {
-                    case Court.SHAPE.SQUARE:
-                        Court.newGame.currentBlocks.locations.Add(new Point(4, 0));
-                        Court.newGame.currentBlocks.locations.Add(new Point(5, 0));
-                        Court.newGame.currentBlocks.locations.Add(new Point(4, 1));
-                        Court.newGame.currentBlocks.locations.Add(new Point(5, 1));
-                        break;
-                    case Court.SHAPE.LONG:
-                        Court.newGame.currentBlocks.locations.Add(new Point(3, 0));
-                        Court.newGame.currentBlocks.locations.Add(new Point(4, 0));
-                        Court.newGame.currentBlocks.locations.Add(new Point(5, 0));
-                        Court.newGame.currentBlocks.locations.Add(new Point(6, 0));
-                        break;
-                    case Court.SHAPE.WIDGET:
-                        Court.newGame.currentBlocks.locations.Add(new Point(5, 0));
-                        Court.newGame.currentBlocks.locations.Add(new Point(4, 1));
-                        Court.newGame.currentBlocks.locations.Add(new Point(5, 1));
-                        Court.newGame.currentBlocks.locations.Add(new Point(6, 1));
-                        break;
-                    case Court.SHAPE.LEFTHOOK:
-                        Court.newGame.currentBlocks.locations.Add(new Point(7, 0));
-                        Court.newGame.currentBlocks.locations.Add(new Point(5, 1));
-                        Court.newGame.currentBlocks.locations.Add(new Point(6, 1));
-                        Court.newGame.currentBlocks.locations.Add(new Point(7, 1));
-                        break;
-                    case Court.SHAPE.RIGHTHOOK:
-                        Court.newGame.currentBlocks.locations.Add(new Point(5, 0));
-                        Court.newGame.currentBlocks.locations.Add(new Point(5, 1));
-                        Court.newGame.currentBlocks.locations.Add(new Point(6, 1));
-                        Court.newGame.currentBlocks.locations.Add(new Point(7, 1));
-                        break;
-                    case Court.SHAPE.LEFTSNAKE:
-                        Court.newGame.currentBlocks.locations.Add(new Point(6, 0));
-                        Court.newGame.currentBlocks.locations.Add(new Point(7, 0));
-                        Court.newGame.currentBlocks.locations.Add(new Point(5, 1));
-                        Court.newGame.currentBlocks.locations.Add(new Point(6, 1));
-                        break;
-                    case Court.SHAPE.RIGHTSNAKE:
-                        Court.newGame.currentBlocks.locations.Add(new Point(5, 0));
-                        Court.newGame.currentBlocks.locations.Add(new Point(6, 0));
-                        Court.newGame.currentBlocks.locations.Add(new Point(6, 1));
-                        Court.newGame.currentBlocks.locations.Add(new Point(7, 1));
-                        break;
-                    default:
-                        break;
+                    Court.newGame = new GameItem();
                 }
-                Court.newGame.currentFallingBlock = true;
+                else
+                {
+                    Court.newGame.currentFallingBlock = true;
+                }
+            }
+
+            if (Court.newGame.currentFallingBlock)
+            {
+                initialBlocks(Court.newGame.nextBlock);
+                Court.newGame.nextFallingBlock = false;
             }
         }
 
-        public static void OnKeyDown(Keys argKey)
+        private static void initialBlocks(BlockItem tempblock)
         {
-            switch (argKey)
+            switch (tempblock.blockShape)
             {
-                case Keys.Left:
-                    updateBlockLeft();
+                case Court.SHAPE.SQUARE:
+                    tempblock.locations.Add(new Point(4, 0));
+                    tempblock.locations.Add(new Point(5, 0));
+                    tempblock.locations.Add(new Point(4, 1));
+                    tempblock.locations.Add(new Point(5, 1));
                     break;
-                case Keys.Right:
-                    updateBlockRight();
+                case Court.SHAPE.LONG:
+                    tempblock.locations.Add(new Point(3, 0));
+                    tempblock.locations.Add(new Point(4, 0));
+                    tempblock.locations.Add(new Point(5, 0));
+                    tempblock.locations.Add(new Point(6, 0));
                     break;
-                case Keys.Up:
-                    changeBlockDirection();
+                case Court.SHAPE.WIDGET:
+                    tempblock.locations.Add(new Point(5, 0));
+                    tempblock.locations.Add(new Point(4, 1));
+                    tempblock.locations.Add(new Point(5, 1));
+                    tempblock.locations.Add(new Point(6, 1));
                     break;
-                case Keys.Down:
+                case Court.SHAPE.LEFTHOOK:
+                    tempblock.locations.Add(new Point(7, 0));
+                    tempblock.locations.Add(new Point(5, 1));
+                    tempblock.locations.Add(new Point(6, 1));
+                    tempblock.locations.Add(new Point(7, 1));
+                    break;
+                case Court.SHAPE.RIGHTHOOK:
+                    tempblock.locations.Add(new Point(5, 0));
+                    tempblock.locations.Add(new Point(5, 1));
+                    tempblock.locations.Add(new Point(6, 1));
+                    tempblock.locations.Add(new Point(7, 1));
+                    break;
+                case Court.SHAPE.LEFTSNAKE:
+                    tempblock.locations.Add(new Point(6, 0));
+                    tempblock.locations.Add(new Point(7, 0));
+                    tempblock.locations.Add(new Point(5, 1));
+                    tempblock.locations.Add(new Point(6, 1));
+                    break;
+                case Court.SHAPE.RIGHTSNAKE:
+                    tempblock.locations.Add(new Point(5, 0));
+                    tempblock.locations.Add(new Point(6, 0));
+                    tempblock.locations.Add(new Point(6, 1));
+                    tempblock.locations.Add(new Point(7, 1));
                     break;
                 default:
                     break;
             }
         }
 
-        public static void changeBlockDirection()
+
+        public static void OnKeyDown(Keys argKey)
         {
-            BlockItem replaceBlock = Court.newGame.currentBlocks;
+            switch (argKey)
+            {
+                case Keys.Left:
+                    updateBlockIndex(Keys.Left);
+                    break;
+                case Keys.Right:
+                    updateBlockIndex(Keys.Right);
+                    break;
+                case Keys.Up:
+                    changeBlockDirection();
+                    break;
+                case Keys.Down:
+                    Court.speedTimer.Interval = 150;
+                    updateBlockDown();
+                    break;
+                default:
+                    break;
+            }
+            Court.speedTimer.Interval = 500; ;
+        }
+
+        private static void changeBlockDirection()
+        {
+
+            BlockItem replaceBlock = new BlockItem();
+
+            for (int j = 0; j < Court.newGame.currentBlocks.locations.Count; j++)
+            {
+                Point tempPoint = Court.newGame.currentBlocks.locations[j];
+                replaceBlock.locations.Add(tempPoint);
+            }
+
+            replaceBlock.blockColor = Court.newGame.currentBlocks.blockColor;
+            replaceBlock.blockShape = Court.newGame.currentBlocks.blockShape;
 
             Point oldPosition1 = Court.newGame.currentBlocks.locations[0];
             Point oldPosition2 = Court.newGame.currentBlocks.locations[1];
@@ -198,43 +284,195 @@ namespace Tetris.Functions
                 case Court.SHAPE.SQUARE:
                     break;
                 case Court.SHAPE.LONG:
-
                     switch (Court.newGame.currentBlocks.myRotation)
                     {
                         case BlockItem.RotateDirections.North:
-                            Court.newGame.currentBlocks.myRotation = BlockItem.RotateDirections.East;
+                            replaceBlock.myRotation = BlockItem.RotateDirections.East;
                             replaceBlock.locations[0] = new Point(oldPosition3.X, oldPosition3.Y - 2);
+                            replaceBlock.locations[1] = new Point(oldPosition3.X, oldPosition3.Y - 1);
+                            replaceBlock.locations[3] = new Point(oldPosition3.X, oldPosition3.Y + 1);
+                            break;
+                        case BlockItem.RotateDirections.East:
+                            replaceBlock.myRotation = BlockItem.RotateDirections.North;
+                            replaceBlock.locations[0] = new Point(oldPosition3.X - 2, oldPosition3.Y);
+                            replaceBlock.locations[1] = new Point(oldPosition3.X - 1, oldPosition3.Y);
+                            replaceBlock.locations[3] = new Point(oldPosition3.X + 1, oldPosition3.Y);
+                            break;
+                    }
+                    break;
+                case Court.SHAPE.WIDGET:
+                    switch (Court.newGame.currentBlocks.myRotation)
+                    {
+                        case BlockItem.RotateDirections.North:
+                            replaceBlock.myRotation = BlockItem.RotateDirections.East;
+                            replaceBlock.locations[0] = new Point(oldPosition3.X + 1, oldPosition3.Y);
                             replaceBlock.locations[1] = new Point(oldPosition3.X, oldPosition3.Y - 1);
                             replaceBlock.locations[2] = new Point(oldPosition3.X, oldPosition3.Y);
                             replaceBlock.locations[3] = new Point(oldPosition3.X, oldPosition3.Y + 1);
                             break;
                         case BlockItem.RotateDirections.East:
-                            Court.newGame.currentBlocks.myRotation = BlockItem.RotateDirections.North;
-                            replaceBlock.locations[0] = new Point(oldPosition3.X - 2, oldPosition3.Y);
+                            replaceBlock.myRotation = BlockItem.RotateDirections.South;
+                            replaceBlock.locations[0] = new Point(oldPosition3.X, oldPosition3.Y + 1);
+                            replaceBlock.locations[1] = new Point(oldPosition3.X + 1, oldPosition3.Y);
+                            replaceBlock.locations[2] = new Point(oldPosition3.X, oldPosition3.Y);
+                            replaceBlock.locations[3] = new Point(oldPosition3.X - 1, oldPosition3.Y);
+                            break;
+                        case BlockItem.RotateDirections.South:
+                            replaceBlock.myRotation = BlockItem.RotateDirections.West;
+                            replaceBlock.locations[0] = new Point(oldPosition3.X - 1, oldPosition3.Y);
+                            replaceBlock.locations[1] = new Point(oldPosition3.X, oldPosition3.Y + 1);
+                            replaceBlock.locations[2] = new Point(oldPosition3.X, oldPosition3.Y);
+                            replaceBlock.locations[3] = new Point(oldPosition3.X, oldPosition3.Y - 1);
+                            break;
+                        case BlockItem.RotateDirections.West:
+                            replaceBlock.myRotation = BlockItem.RotateDirections.North;
+                            replaceBlock.locations[0] = new Point(oldPosition3.X, oldPosition3.Y - 1);
                             replaceBlock.locations[1] = new Point(oldPosition3.X - 1, oldPosition3.Y);
                             replaceBlock.locations[2] = new Point(oldPosition3.X, oldPosition3.Y);
                             replaceBlock.locations[3] = new Point(oldPosition3.X + 1, oldPosition3.Y);
                             break;
                     }
                     break;
-                case Court.SHAPE.WIDGET:
-                    break;
                 case Court.SHAPE.LEFTHOOK:
+                    switch (Court.newGame.currentBlocks.myRotation)
+                    {
+                        case BlockItem.RotateDirections.North:
+                            replaceBlock.myRotation = BlockItem.RotateDirections.East;
+                            replaceBlock.locations[0] = new Point(oldPosition3.X + 1, oldPosition3.Y + 1);
+                            replaceBlock.locations[1] = new Point(oldPosition3.X, oldPosition3.Y - 1);
+                            replaceBlock.locations[2] = new Point(oldPosition3.X, oldPosition3.Y);
+                            replaceBlock.locations[3] = new Point(oldPosition3.X, oldPosition3.Y + 1);
+                            break;
+                        case BlockItem.RotateDirections.East:
+                            replaceBlock.myRotation = BlockItem.RotateDirections.South;
+                            replaceBlock.locations[0] = new Point(oldPosition3.X - 1, oldPosition3.Y + 1);
+                            replaceBlock.locations[1] = new Point(oldPosition3.X + 1, oldPosition3.Y);
+                            replaceBlock.locations[2] = new Point(oldPosition3.X, oldPosition3.Y);
+                            replaceBlock.locations[3] = new Point(oldPosition3.X - 1, oldPosition3.Y);
+                            break;
+                        case BlockItem.RotateDirections.South:
+                            replaceBlock.myRotation = BlockItem.RotateDirections.West;
+                            replaceBlock.locations[0] = new Point(oldPosition3.X - 1, oldPosition3.Y - 1);
+                            replaceBlock.locations[1] = new Point(oldPosition3.X, oldPosition3.Y + 1);
+                            replaceBlock.locations[2] = new Point(oldPosition3.X, oldPosition3.Y);
+                            replaceBlock.locations[3] = new Point(oldPosition3.X, oldPosition3.Y - 1);
+                            break;
+                        case BlockItem.RotateDirections.West:
+                            replaceBlock.myRotation = BlockItem.RotateDirections.North;
+                            replaceBlock.locations[0] = new Point(oldPosition3.X + 1, oldPosition3.Y - 1);
+                            replaceBlock.locations[1] = new Point(oldPosition3.X - 1, oldPosition3.Y);
+                            replaceBlock.locations[2] = new Point(oldPosition3.X, oldPosition3.Y);
+                            replaceBlock.locations[3] = new Point(oldPosition3.X + 1, oldPosition3.Y);
+                            break;
+                    }
                     break;
                 case Court.SHAPE.RIGHTHOOK:
+                    switch (Court.newGame.currentBlocks.myRotation)
+                    {
+                        case BlockItem.RotateDirections.North:
+                            replaceBlock.myRotation = BlockItem.RotateDirections.East;
+                            replaceBlock.locations[0] = new Point(oldPosition3.X + 1, oldPosition3.Y - 1);
+                            replaceBlock.locations[1] = new Point(oldPosition3.X, oldPosition3.Y - 1);
+                            replaceBlock.locations[2] = new Point(oldPosition3.X, oldPosition3.Y);
+                            replaceBlock.locations[3] = new Point(oldPosition3.X, oldPosition3.Y + 1);
+                            break;
+                        case BlockItem.RotateDirections.East:
+                            replaceBlock.myRotation = BlockItem.RotateDirections.South;
+                            replaceBlock.locations[0] = new Point(oldPosition3.X + 1, oldPosition3.Y + 1);
+                            replaceBlock.locations[1] = new Point(oldPosition3.X + 1, oldPosition3.Y);
+                            replaceBlock.locations[2] = new Point(oldPosition3.X, oldPosition3.Y);
+                            replaceBlock.locations[3] = new Point(oldPosition3.X - 1, oldPosition3.Y);
+                            break;
+                        case BlockItem.RotateDirections.South:
+                            replaceBlock.myRotation = BlockItem.RotateDirections.West;
+                            replaceBlock.locations[0] = new Point(oldPosition3.X - 1, oldPosition3.Y + 1);
+                            replaceBlock.locations[1] = new Point(oldPosition3.X, oldPosition3.Y + 1);
+                            replaceBlock.locations[2] = new Point(oldPosition3.X, oldPosition3.Y);
+                            replaceBlock.locations[3] = new Point(oldPosition3.X, oldPosition3.Y - 1);
+                            break;
+                        case BlockItem.RotateDirections.West:
+                            replaceBlock.myRotation = BlockItem.RotateDirections.North;
+                            replaceBlock.locations[0] = new Point(oldPosition3.X - 1, oldPosition3.Y - 1);
+                            replaceBlock.locations[1] = new Point(oldPosition3.X - 1, oldPosition3.Y);
+                            replaceBlock.locations[2] = new Point(oldPosition3.X, oldPosition3.Y);
+                            replaceBlock.locations[3] = new Point(oldPosition3.X + 1, oldPosition3.Y);
+                            break;
+                    }
                     break;
                 case Court.SHAPE.LEFTSNAKE:
+                    switch (Court.newGame.currentBlocks.myRotation)
+                    {
+                        case BlockItem.RotateDirections.North:
+                            replaceBlock.myRotation = BlockItem.RotateDirections.East;
+                            replaceBlock.locations[0] = new Point(oldPosition1.X, oldPosition1.Y);
+                            replaceBlock.locations[1] = new Point(oldPosition1.X, oldPosition1.Y + 1);
+                            replaceBlock.locations[2] = new Point(oldPosition1.X - 1, oldPosition1.Y - 1);
+                            replaceBlock.locations[3] = new Point(oldPosition1.X - 1, oldPosition1.Y);
+                            break;
+                        case BlockItem.RotateDirections.East:
+                            replaceBlock.myRotation = BlockItem.RotateDirections.South;
+                            replaceBlock.locations[0] = new Point(oldPosition1.X, oldPosition1.Y);
+                            replaceBlock.locations[1] = new Point(oldPosition1.X - 1, oldPosition1.Y);
+                            replaceBlock.locations[2] = new Point(oldPosition1.X + 1, oldPosition1.Y - 1);
+                            replaceBlock.locations[3] = new Point(oldPosition1.X, oldPosition1.Y - 1);
+                            break;
+                        case BlockItem.RotateDirections.South:
+                            replaceBlock.myRotation = BlockItem.RotateDirections.West;
+                            replaceBlock.locations[0] = new Point(oldPosition1.X, oldPosition1.Y);
+                            replaceBlock.locations[1] = new Point(oldPosition1.X, oldPosition1.Y - 1);
+                            replaceBlock.locations[2] = new Point(oldPosition1.X + 1, oldPosition1.Y + 1);
+                            replaceBlock.locations[3] = new Point(oldPosition1.X + 1, oldPosition1.Y);
+                            break;
+                        case BlockItem.RotateDirections.West:
+                            replaceBlock.myRotation = BlockItem.RotateDirections.North;
+                            replaceBlock.locations[0] = new Point(oldPosition1.X, oldPosition1.Y);
+                            replaceBlock.locations[1] = new Point(oldPosition1.X + 1, oldPosition1.Y);
+                            replaceBlock.locations[2] = new Point(oldPosition1.X, oldPosition1.Y + 1);
+                            replaceBlock.locations[3] = new Point(oldPosition1.X - 1, oldPosition1.Y + 1);
+                            break;
+                    }
                     break;
                 case Court.SHAPE.RIGHTSNAKE:
+                    switch (Court.newGame.currentBlocks.myRotation)
+                    {
+                        case BlockItem.RotateDirections.North:
+                            replaceBlock.myRotation = BlockItem.RotateDirections.East;
+                            replaceBlock.locations[0] = new Point(oldPosition3.X + 1, oldPosition3.Y - 1);
+                            replaceBlock.locations[1] = new Point(oldPosition3.X + 1, oldPosition3.Y);
+                            replaceBlock.locations[2] = new Point(oldPosition3.X, oldPosition3.Y);
+                            replaceBlock.locations[3] = new Point(oldPosition3.X, oldPosition3.Y + 1);
+                            break;
+                        case BlockItem.RotateDirections.East:
+                            replaceBlock.myRotation = BlockItem.RotateDirections.South;
+                            replaceBlock.locations[0] = new Point(oldPosition3.X + 1, oldPosition3.Y + 1);
+                            replaceBlock.locations[1] = new Point(oldPosition3.X, oldPosition3.Y + 1);
+                            replaceBlock.locations[2] = new Point(oldPosition3.X, oldPosition3.Y);
+                            replaceBlock.locations[3] = new Point(oldPosition3.X - 1, oldPosition3.Y);
+                            break;
+                        case BlockItem.RotateDirections.South:
+                            replaceBlock.myRotation = BlockItem.RotateDirections.West;
+                            replaceBlock.locations[0] = new Point(oldPosition3.X - 1, oldPosition3.Y + 1);
+                            replaceBlock.locations[1] = new Point(oldPosition3.X - 1, oldPosition3.Y);
+                            replaceBlock.locations[2] = new Point(oldPosition3.X, oldPosition3.Y);
+                            replaceBlock.locations[3] = new Point(oldPosition3.X, oldPosition3.Y - 1);
+                            break;
+                        case BlockItem.RotateDirections.West:
+                            replaceBlock.myRotation = BlockItem.RotateDirections.North;
+                            replaceBlock.locations[0] = new Point(oldPosition3.X - 1, oldPosition3.Y - 1);
+                            replaceBlock.locations[1] = new Point(oldPosition3.X, oldPosition3.Y - 1);
+                            replaceBlock.locations[2] = new Point(oldPosition3.X, oldPosition3.Y);
+                            replaceBlock.locations[3] = new Point(oldPosition3.X + 1, oldPosition3.Y);
+                            break;
+                    }
                     break;
                 default:
                     break;
             }
 
-            //if (checkBlocks(replaceBlock))
-            //{
-            //  Court.newGame.currentBlocks = replaceBlock;
-            //}
+            if (checkBlocks(replaceBlock))
+            {
+                Court.newGame.currentBlocks = replaceBlock;
+            }
         }
     }
 }
