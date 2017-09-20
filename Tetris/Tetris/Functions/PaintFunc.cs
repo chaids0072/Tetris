@@ -31,7 +31,7 @@ namespace Tetris.Functions
             for (int j = 0; j < Court.newGame.nextBlock.locations.Count; j++)
             {
                 Point tempPoint = Court.newGame.nextBlock.locations[j];
-                Court.graphicSecondary.DrawImage(Court.blockImage, new Rectangle(Court.imagePixel * tempPoint.X, Court.imagePixel * tempPoint.Y, 32, 32), new Rectangle(Court.imagePixel * Court.newGame.nextBlock.blockColor, 0, 32, 32), GraphicsUnit.Pixel);
+                Court.graphicSecondary.DrawImage(Court.blockImage, new Rectangle(Court.imagePixel * tempPoint.X , Court.imagePixel * tempPoint.Y, 32, 32), new Rectangle(Court.imagePixel * Court.newGame.nextBlock.blockColor, 0, 32, 32), GraphicsUnit.Pixel);
             }
 
             //Paint stable blocks

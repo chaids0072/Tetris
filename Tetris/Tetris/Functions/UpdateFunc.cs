@@ -44,7 +44,7 @@ namespace Tetris.Functions
 
         public static void updateScore()
         {
-            List<int> lines = new List<int>(4);
+            List<int> lines = new List<int>();
 
             for (int i = 0; i < GameItem.heightInSquares; i++)
             {
@@ -59,40 +59,96 @@ namespace Tetris.Functions
                 for (int j = 0; j < Court.newGame.blocks[i].locations.Count; j++)
                 {
                     Point tempPoint = Court.newGame.blocks[i].locations[j];
-                    Court.counter[tempPoint.Y, tempPoint.X] = 1024;
+                    if (tempPoint.Y < GameItem.heightInSquares)
+                    {
+                        Court.counter[tempPoint.Y, tempPoint.X] = 1024;
+                    }
                 }
             }
 
             for (int x = GameItem.heightInSquares - 1; x >= 0; x--)
             {
                 int counter = 0;
-                for (int z = GameItem.widthInSquares - 1; z >= 0 ; z--)
+                for (int z = GameItem.widthInSquares - 1; z >= 0; z--)
                 {
-                    if (Court.counter[x,z] == 1024) {
+                    if (Court.counter[x, z] == 1024)
+                    {
                         counter++;
                     }
                 }
 
-                if (counter == 10) {
+                if (counter == 10)
+                {
                     lines.Add(x);
-                    Court.newGame.socre += 10;
                 }
                 counter = 0;
             }
 
+            //count score
+            switch (lines.Count)
+            {
+                case 1:
+                    Court.newGame.score += 10;
+                    break;
+                case 2:
+                    Court.newGame.score += 20;
+                    break;
+                case 3:
+                    Court.newGame.score += 30;
+                    break;
+                case 4:
+                    Court.newGame.score += 80;
+                    break;
+                default:
+                    break;
+            }
+
+            //remove accumulated lines
             for (int i = 0; i < Court.newGame.blocks.Count; i++)
             {
                 for (int j = 0; j < Court.newGame.blocks[i].locations.Count; j++)
                 {
                     Point tempPoint = Court.newGame.blocks[i].locations[j];
-                    if (lines.Contains(tempPoint.Y)) {
-                        Court.newGame.blocks[i].locations[j].X = -1;
-                        Court.newGame.blocks[i].locations[j].Y = -1;
+                    Point replacePoint = new Point(0, 0);
+                    if (lines.Contains(tempPoint.Y))
+                    {
+                        replacePoint.X = tempPoint.X;
+                        replacePoint.Y = GameItem.heightInSquares;
+
+                        int index = Court.newGame.blocks[i].locations.IndexOf(tempPoint);
+                        Court.newGame.blocks[i].locations.Remove(tempPoint);
+                        Court.newGame.blocks[i].locations.Insert(index, replacePoint);
                     }
                 }
             }
 
-            Console.WriteLine(Court.newGame.socre);
+            //move down those lines above accumulated lines
+            int lineCounter = 0;
+            foreach (var var in lines)
+            {
+                int line = var + lineCounter;
+                for (int i = 0; i < Court.newGame.blocks.Count; i++)
+                {
+                    //BlockItem tempBlock = new BlockItem();
+                    for (int j = 0; j < Court.newGame.blocks[i].locations.Count; j++)
+                    {
+                        Point tempPoint = Court.newGame.blocks[i].locations[j];
+                        Point replacePoint = new Point(0, 0);
+                        if (tempPoint.Y < line)
+                        {
+                            replacePoint.X = tempPoint.X;
+                            replacePoint.Y = tempPoint.Y + 1;
+
+                            int index = Court.newGame.blocks[i].locations.IndexOf(tempPoint);
+                            Court.newGame.blocks[i].locations.Remove(tempPoint);
+                            Court.newGame.blocks[i].locations.Insert(index, replacePoint);
+                        }
+                    }
+                }
+                lineCounter += 1;
+            }
+
+            lines.Clear();
         }
 
         public static void updateBlockIndex(Keys argKey)

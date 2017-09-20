@@ -36,6 +36,7 @@ namespace Tetris
 
         private void timer2_Tick(object sender, EventArgs e)
         {
+            label2.Text = "Your Score: " + Court.newGame.score;
             UpdateFunc.updateBlockDown();
         }
 
@@ -43,6 +44,5 @@ namespace Tetris
         {
             UpdateFunc.OnKeyDown(e.KeyCode);
         }
-
     }
 }

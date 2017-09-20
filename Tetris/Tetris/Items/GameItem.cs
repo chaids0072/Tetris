@@ -10,7 +10,7 @@ namespace Tetris
     {
         public const int widthInSquares = 10;           
         public const int heightInSquares = 20;
-        public int socre = 0;
+        public int score = 0;
 
         public BlockItem currentBlocks = new BlockItem();
         public BlockItem nextBlock = new BlockItem();
